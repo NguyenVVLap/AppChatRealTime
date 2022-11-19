@@ -41,17 +41,18 @@ function ChatScreen(props) {
   const { navigation, route } = props;
   const { navigate, goBack } = navigation;
   const { users_info, conversation, lastMessage } = props.route.params.user; // nhận từ bên MessageScreen
+  // console.log("Conservation Room : ",conversation);
   const setHaveNewMessage = props.route.params.setHaveNewMessage; 
   const [messages, setMessages] = useState([]);
   const [arraivalMessage, setArrivalMessage] = useState({});
   const [text, setText] = useState("");
   const [userNameBanThan,setuserNameBanThan] = useState("");
-  const [userNameNguoiTa,setuserNameNguoiTa] = useState('');
+  // const [userNameNguoiTa,setuserNameNguoiTa] = useState('');
   const socket = useRef();
-
+  // console.log("Tin nhắn: ",messages);
   useEffect(() => {
     addUserToSocket();
-    setuserNameNguoiTa(users_info[0].username)
+    // setuserNameNguoiTa(users_info[0].username)
   }, []);
 
   const addUserToSocket = async () => {
@@ -65,16 +66,16 @@ function ChatScreen(props) {
       socket.current.on("msg-receive", (dataSent) => {
         console.log("Data nhận :", dataSent.from.user.username);
         // setuserNameNguoiTa(dataSent.from.user.username);
-       
+        
         if (conversation._id === dataSent.from.conversationId) {
-          setArrivalMessage({ fromSelf: false, message: dataSent.message });
+          setArrivalMessage({ fromSelf: false, message: dataSent.message,senderUser:dataSent.from.user.username });
         }
       });
     }
   };
   useEffect(() => {
     getAllMyMessages();
-  }, []);
+  },[arraivalMessage]);
   useEffect(() => {
    
     if (arraivalMessage) setMessages([...messages, arraivalMessage]);
@@ -110,7 +111,7 @@ function ChatScreen(props) {
       message: newMessage.data,
     });
     const msgs = [...messages];
-    msgs.push({ fromSelf: true, message: newMessage.data });
+    msgs.push({ fromSelf: true, message: newMessage.data,senderUser:currentUser});
     setMessages(msgs);
     setHaveNewMessage(new Date());
     setText("");
@@ -199,7 +200,9 @@ console.log("Tên Image Fetch:", uriFetch);
             goBack();
           }}
         />
-        <Text style={styles.headerTitle}>{users_info[0].username}</Text>
+        <Text style={styles.headerTitle}>
+          {conversation.members.length >2 ? conversation.name : users_info[0].username }
+        </Text>
         
       </View>
       {/* {console.log(messages[0])} */}
@@ -208,7 +211,7 @@ console.log("Tên Image Fetch:", uriFetch);
           style={{ flex: 1 }}
           data={messages}
           renderItem={({ item }) => (
-            <ChatItem item={item} userNameBanThan={userNameBanThan} userNameNguoiTa={userNameNguoiTa}  key={`${item._id}`} />
+            <ChatItem item={item}  userNameBanThan={userNameBanThan}   key={`${item._id}`} onPress={()=>{console.log("Hello");}} />
           )}
         />
       )}
